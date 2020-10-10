@@ -5,8 +5,8 @@ interface ContainerProps {
 }
 
 export const Container = styled.div<ContainerProps>`
-  background: #5636d3;
-  padding: 30px 0;
+  background: #65b891;
+  padding: 15px 0;
 
   header {
     width: 1120px;
@@ -29,9 +29,14 @@ export const Container = styled.div<ContainerProps>`
 
         &:hover {
           opacity: 0.6;
-          border-bottom: 2px solid #ff872c;
+          border-bottom: 2px solid #b5ffe1;
         }
       }
     }
   }
+`;
+
+export const LogoText = styled.p`
+  font-family: 'Pacifico', cursive;
+  color: #fff;
 `;

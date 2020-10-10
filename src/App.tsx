@@ -3,6 +3,7 @@ import { BrowserRouter as Router } from 'react-router-dom';
 import moment from 'moment';
 
 import Routes from './routes';
+import AppProvider from './hooks';
 
 import GlobalStyle from './styles/global';
 
@@ -12,7 +13,9 @@ const App: React.FC = () => (
   <>
     <GlobalStyle />
     <Router>
-      <Routes />
+      <AppProvider>
+        <Routes />
+      </AppProvider>
     </Router>
   </>
 );

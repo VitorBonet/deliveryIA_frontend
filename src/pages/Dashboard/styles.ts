@@ -1,5 +1,9 @@
 import styled, { css } from 'styled-components';
+import { shade } from 'polished';
 
+interface ButtonProps {
+  selected?: boolean;
+}
 interface CardProps {
   total?: boolean;
 }
@@ -8,7 +12,24 @@ export const Container = styled.div`
   width: 100%;
   max-width: 1120px;
   margin: 0 auto;
-  padding: 40px 20px;
+  padding: 20px 20px;
+`;
+
+export const ButtonSelect = styled.button`
+  background: ${({ selected }: ButtonProps): string =>
+    selected ? '#4E878C' : '#fff'};
+  color: ${({ selected }: ButtonProps): string => (selected ? '#fff' : '#000')};
+  border-radius: 5px;
+  padding: 8px 45px;
+  border: 0;
+  transition: background-color 0.2s;
+  font-size: 14px;
+  margin-right: 5px;
+
+  &:hover {
+    background: ${shade(0.2, '#4e878c')};
+    color: #fff;
+  }
 `;
 
 export const Title = styled.h1`
@@ -20,14 +41,14 @@ export const CardContainer = styled.section`
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   grid-gap: 32px;
-  margin-top: -150px;
+  margin-top: 20px;
 `;
 
 export const Card = styled.div`
-  background: ${({ total }: CardProps): string => (total ? '#FF872C' : '#fff')};
+  background: ${({ total }: CardProps): string => (total ? '#4E878C' : '#fff')};
   padding: 22px 32px;
   border-radius: 5px;
-  color: ${({ total }: CardProps): string => (total ? '#fff' : '#363F5F')};
+  color: ${({ total }: CardProps): string => (total ? '#fff' : '#4E878C')};
 
   header {
     display: flex;
@@ -75,11 +96,11 @@ export const TableContainer = styled.section`
         color: #363f5f;
       }
 
-      &.income {
+      &.Income {
         color: #12a454;
       }
 
-      &.outcome {
+      &.Outcome {
         color: #e83f5b;
       }
     }

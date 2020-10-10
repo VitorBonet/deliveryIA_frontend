@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import moment from 'moment';
 
 import income from '../../assets/income.svg';
@@ -11,17 +11,29 @@ import Header from '../../components/Header';
 
 import formatValue from '../../utils/formatValue';
 
-import { Container, CardContainer, Card, TableContainer } from './styles';
+import {
+  Container,
+  ButtonSelect,
+  CardContainer,
+  Card,
+  TableContainer,
+} from './styles';
 
-interface Transaction {
+interface Delivery {
   id: string;
-  title: string;
-  value: number;
-  formattedValue: string;
-  formattedDate: string;
-  type: 'income' | 'outcome';
-  category: { title: string };
-  created_at: Date;
+  type: 'Income' | 'Outcome';
+  seq: number;
+  exec: string;
+  order: {
+    id: string;
+    time: number;
+    value: number;
+    itemGrafo: {
+      id: string;
+      name: string;
+    };
+    created_at: Date;
+  };
 }
 
 interface Balance {
@@ -41,7 +53,7 @@ function convertNumberToMoney({ value, type }: NumberToMoney): string {
     currency: 'BRL',
   }).format(value);
 
-  if (type === 'outcome') {
+  if (type === 'Outcome') {
     ret = `- ${ret}`;
   }
 
@@ -49,53 +61,123 @@ function convertNumberToMoney({ value, type }: NumberToMoney): string {
 }
 
 const Dashboard: React.FC = () => {
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [buttonSelectedA1, setButtonSelectedA1] = useState(true);
+  const [buttonSelectedA2, setButtonSelectedA2] = useState(false);
+  const [deliverys, setDeliverys] = useState<Delivery[]>([]);
   const [balance, setBalance] = useState<Balance>({} as Balance);
 
   useEffect(() => {
     async function loadTransactions(): Promise<void> {
-      const response = await api.get('/transactions');
+      const response = await api.get('/delivery');
 
-      const transactionsData = response.data.transactions;
-      const balanceData = response.data.balance;
+      const deliverysData: Delivery[] = response.data;
 
-      balanceData.income = convertNumberToMoney({
-        value: balanceData.income,
+      const valueIncome = deliverysData
+        .filter(deli => deli.type === 'Income')
+        .reduce((tot, delivery) => {
+          return tot + delivery.order.value;
+        }, 0);
+
+      const valueOutcome = deliverysData
+        .filter(deli => deli.type === 'Outcome')
+        .reduce((tot, delivery) => {
+          return tot + delivery.order.value;
+        }, 0);
+
+      const valueTot = deliverysData.reduce((tot, delivery) => {
+        return tot + delivery.order.value;
+      }, 0);
+
+      const BalanceIncome = convertNumberToMoney({
+        value: valueIncome,
         type: undefined,
       });
 
-      balanceData.outcome = convertNumberToMoney({
-        value: balanceData.outcome,
+      const BalanceOutcome = convertNumberToMoney({
+        value: valueOutcome,
         type: undefined,
       });
 
-      balanceData.total = convertNumberToMoney({
-        value: balanceData.total,
+      const BalanceTotal = convertNumberToMoney({
+        value: valueTot,
         type: undefined,
       });
 
-      setTransactions(transactionsData);
+      const balanceData = {
+        income: BalanceIncome,
+        outcome: BalanceOutcome,
+        total: BalanceTotal,
+      };
+
+      setDeliverys(deliverysData);
       setBalance(balanceData);
     }
 
     loadTransactions();
   }, []);
 
+  const handleSelectDeliverys = useCallback(async button => {
+    if (button === 1) {
+      setButtonSelectedA1(true);
+      setButtonSelectedA2(false);
+    } else {
+      setButtonSelectedA1(false);
+      setButtonSelectedA2(true);
+    }
+    // try {
+    //   await api.patch('/delivery/upload', data);
+    //   addToast({
+    //     type: 'success',
+    //     title: 'Sucesso',
+    //     description: 'Importação realizada com sucesso',
+    //   });
+    // } catch (err) {
+    //   console.log(err.response.data.message);
+    //   if (err.response.data.status) {
+    //     addToast({
+    //       type: 'error',
+    //       title: 'Erro na importação',
+    //       description: err.response.data.message,
+    //     });
+    //   } else {
+    //     addToast({
+    //       type: 'error',
+    //       title: 'Erro na importação',
+    //       description: 'Ocorreu um erro ao tentar importar o arquivo.',
+    //     });
+    //   }
+  }, []);
+
   return (
     <>
       <Header />
       <Container>
+        <ButtonSelect
+          onClick={() => handleSelectDeliverys(1)}
+          type="button"
+          selected={buttonSelectedA1}
+        >
+          A1
+        </ButtonSelect>
+        <ButtonSelect
+          onClick={() => handleSelectDeliverys(2)}
+          type="button"
+          disabled
+          selected={buttonSelectedA2}
+        >
+          A2
+        </ButtonSelect>
         <CardContainer>
           <Card>
             <header>
-              <p>Entradas</p>
+              <p>Realizadas</p>
               <img src={income} alt="Income" />
             </header>
             <h1 data-testid="balance-income">{balance.income}</h1>
           </Card>
           <Card>
             <header>
-              <p>Saídas</p>
+              <p>Perdidas</p>
               <img src={outcome} alt="Outcome" />
             </header>
             <h1 data-testid="balance-outcome">{balance.outcome}</h1>
@@ -115,23 +197,19 @@ const Dashboard: React.FC = () => {
               <tr>
                 <th>Título</th>
                 <th>Preço</th>
-                <th>Categoria</th>
-                <th>Data</th>
               </tr>
             </thead>
 
             <tbody>
-              {transactions.map(transaction => (
-                <tr key={transaction.id}>
-                  <td className="title">{transaction.title}</td>
-                  <td className={transaction.type}>
+              {deliverys.map(delivery => (
+                <tr key={delivery.id}>
+                  <td className="title">{delivery.order.itemGrafo.name}</td>
+                  <td className={delivery.type}>
                     {convertNumberToMoney({
-                      value: transaction.value,
-                      type: transaction.type,
+                      value: delivery.order.value,
+                      type: delivery.type,
                     })}
                   </td>
-                  <td>{transaction.category.title}</td>
-                  <td>{moment(transaction.created_at).format('L')}</td>
                 </tr>
               ))}
             </tbody>

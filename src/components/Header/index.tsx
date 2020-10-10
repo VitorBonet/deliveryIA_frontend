@@ -2,21 +2,21 @@ import React from 'react';
 
 import { Link } from 'react-router-dom';
 
-import { Container } from './styles';
+import { Container, LogoText } from './styles';
 
-import Logo from '../../assets/logo.svg';
+import Logo from '../../assets/delivery_logo_small.png';
 
 interface HeaderProps {
   size?: 'small' | 'large';
 }
 
-const Header: React.FC<HeaderProps> = ({ size = 'large' }: HeaderProps) => (
+const Header: React.FC<HeaderProps> = ({ size = 'small' }: HeaderProps) => (
   <Container size={size}>
     <header>
-      <img src={Logo} alt="GoFinances" />
+      <LogoText>Money Delivery</LogoText>
       <nav>
-        <Link to="/">Listagem</Link>
-        <Link to="/import">Importar</Link>
+        <Link to="/">Importar</Link>
+        <Link to="/Dashboard">Listagem</Link>
       </nav>
     </header>
   </Container>
